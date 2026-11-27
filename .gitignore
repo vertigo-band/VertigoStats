@@ -1,0 +1,5 @@
+node_modules
+dist
+scripts/e2e-out
+scripts/mocks
+.env*
