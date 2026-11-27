@@ -4,7 +4,7 @@ export function parseNum(input: unknown): number | null {
   if (typeof input === "number") return Number.isFinite(input) ? input : null;
   let s = String(input).trim();
   if (!s || /^[-–—]+$/.test(s)) return null;
-  s = s.replace(/[\s ]/g, "").replace(/[$€£¥₹%]/g, "").replace(/^[A-Z]{3}/, "");
+  s = s.replace(/[\s ]/g, "").replace(/[$€£¥₹%]/g, "").replace(/^[A-Za-z]{1,3}(?=[-\d.,])/, ""); // "USD 10", "US$5" → number
   const m = s.match(/^(-?[\d,]*\.?\d+)([kKmMbB])?$/);
   if (!m) return null;
   const n = Number(m[1].replace(/,/g, ""));

@@ -64,7 +64,11 @@ try {
     if (route.request().method() === "OPTIONS") return route.fulfill({ status: 204, headers: cors });
     const body = route.request().postDataJSON();
     if (body.model !== "claude-opus-5-5" || body.messages[0].content[0].type !== "image") throw new Error("unexpected request shape");
-    const text = JSON.stringify(RESPONSES[n++]);
+    // The API returns every value as displayed text ("" = not shown); mimic that.
+    const toApi = v => (v === null ? "" : typeof v === "number" ? String(v) : Array.isArray(v) ? v.map(toApi) : typeof v === "object" ? Object.fromEntries(Object.entries(v).map(([k, x]) => [k, toApi(x)])) : v);
+    const schema = JSON.stringify(body.output_config?.format?.schema ?? {});
+    if (/"anyOf"|"type":\[|null/.test(schema)) throw new Error("schema has nullable/union fields: " + schema.slice(0, 200));
+    const text = JSON.stringify(toApi(RESPONSES[n++]));
     await route.fulfill({ status: 200, headers: { ...cors, "content-type": "application/json" }, body: JSON.stringify({
       id: "msg_test", type: "message", role: "assistant", model: "claude-opus-5-5", content: [{ type: "text", text }],
       stop_reason: "end_turn", stop_sequence: null, usage: { input_tokens: 1500, output_tokens: 300 } }) });
